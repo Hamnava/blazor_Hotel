@@ -1,6 +1,7 @@
 using Business.Repository;
 using Business.Repository.Interfaces;
 using DataAccess.Data;
+using DataAccess.Enttities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -38,7 +39,7 @@ namespace HiddingVila_Api
             });
 
             // Identity configuration
-            services.AddIdentity<IdentityUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             // AutoMapper 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
