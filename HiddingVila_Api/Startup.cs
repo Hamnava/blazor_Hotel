@@ -2,6 +2,7 @@ using Business.Repository;
 using Business.Repository.Interfaces;
 using DataAccess.Data;
 using DataAccess.Enttities;
+using HiddingVila_Api.Helper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -47,6 +48,10 @@ namespace HiddingVila_Api
             // Reposiroty configuration
             services.AddScoped<IHotelRoom, HotelRoomService>();
             services.AddScoped<IHotelImage, HotelRoomImageServices>();
+
+            // For APISettings
+            var appSettingsSection = Configuration.GetSection("APISettings");
+            services.Configure<APISettings>(appSettingsSection);
 
             services.AddRouting(option => option.LowercaseUrls = true);
             services.AddControllers();
