@@ -1,4 +1,6 @@
 ﻿using Business.Repository.Interfaces;
+using Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models;
@@ -17,6 +19,7 @@ namespace HiddingVila_Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = CD.Role_Admin)]
         public async Task<IActionResult> GetHotelRooms()
         {
             var allrooms = await _rooms.GetRooms();

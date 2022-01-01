@@ -2,6 +2,8 @@ using Business.Repository;
 using Business.Repository.Interfaces;
 using DataAccess.Data;
 using DataAccess.Enttities;
+using HiddingVila_Api.Helper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,10 +14,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace HiddingVila_Api
@@ -48,11 +53,70 @@ namespace HiddingVila_Api
             services.AddScoped<IHotelRoom, HotelRoomService>();
             services.AddScoped<IHotelImage, HotelRoomImageServices>();
 
+            // For APISettings
+            var appSettingsSection = Configuration.GetSection("APISettings");
+            services.Configure<APISettings>(appSettingsSection);
+
+            var apiSettings = appSettingsSection.Get<APISettings>();
+            var key = Encoding.ASCII.GetBytes(apiSettings.SecretKey);
+
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateAudience = true,
+                    ValidAudience = apiSettings.ValidAudience,
+                    ValidateIssuer = true,
+                    ValidIssuer = apiSettings.ValidIssuer,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+
+            // for Configuring Cors Policy
+            services.AddCors(c => c.AddPolicy("HiddenVila", builder =>
+             {
+                 builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+             }));
             services.AddRouting(option => option.LowercaseUrls = true);
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null)
+                .AddNewtonsoftJson(opt =>
+                {
+                    opt.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                    opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HiddingVila_Api", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please Bearer and then token in the field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                   {
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "Bearer"
+                       }
+                      },
+                      new string[] { }
+                    }
+                });
             });
         }
 
@@ -67,9 +131,9 @@ namespace HiddingVila_Api
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("HiddenVila");
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
