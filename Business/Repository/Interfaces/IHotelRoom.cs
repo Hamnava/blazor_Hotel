@@ -11,8 +11,8 @@ namespace Business.Repository.Interfaces
     {
         Task<HotelRoomDTO> CreateHotelRoom(HotelRoomDTO hotelRoomDTO);
         Task<HotelRoomDTO> UpdateHotelRoom(int roomid, HotelRoomDTO hotelRoomDTO);
-        Task<HotelRoomDTO> GetHotelRoom(int roomid);
-        Task<IEnumerable<HotelRoomDTO>> GetRooms();
+        Task<HotelRoomDTO> GetHotelRoom(int roomid, string checkInDate = null, string checkOutDate = null);
+        Task<IEnumerable<HotelRoomDTO>> GetRooms(string checkInDate= null, string checkOutDate = null);
         Task<HotelRoomDTO> ExistRoomName(string roomName, int roomid = 0);
         Task<int> RemoveHotelRoom(int id);
     }
