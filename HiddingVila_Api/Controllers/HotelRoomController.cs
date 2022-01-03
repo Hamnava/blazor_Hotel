@@ -21,7 +21,7 @@ namespace HiddingVila_Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = CD.Role_Admin)]
+        
         public async Task<IActionResult> GetHotelRooms(string checkInDate = null, string checkOutDate = null)
         {
             if (string.IsNullOrEmpty(checkInDate)|| string.IsNullOrEmpty(checkOutDate))

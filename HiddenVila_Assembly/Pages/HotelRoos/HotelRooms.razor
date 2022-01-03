@@ -3,19 +3,110 @@
 @inject IJSRuntime jsRuntime
 @inject IHotelRoom hotelRoom
 
-Hotel Rooms
+
+<div class="container-fluid">
+    @if (rooms != null && rooms.Any())
+    {
+        <EditForm Model="HomeModel" OnValidSubmit="OnInitialData">
+            <DataAnnotationsValidator />
+            <div class="row px-5 bg-secondary">
+                <div class="col-4 p-5 ">
+                    <label>Check In Date</label>
+                    <InputDate @bind-Value="@HomeModel.StartDate" class="form-control" />
+                </div>
+                <div class="col-4 p-5 ">
+                    <label>Check Out Date</label>
+                    <input @bind="HomeModel.EndDate" disabled="disabled" class="form-control" />
+                </div>
+                <div class="col-4 p-5 ">
+                    <div class="row">
+                        <div class="col-6">
+                            <label>No of Nights</label>
+                            <select class="form-control" @bind="HomeModel.NoOfNights">
+                                <option selected="selected">(No Of Nights)</option>
+                                @for (var i = 1; i <= 10; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            @if (IsProcessing)
+                           {
+                            <input type="button" value="processing..." disabled="disabled" class="form-control mt-4 btn btn-success" />
+                           }
+                           else{
+                               <input type="submit" value="Update" class="form-control mt-4 btn btn-success" />
+                               }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </EditForm>
+        @foreach (var room in rooms)
+        {
+            <div class="container bg-dark mt-4 p-4" style="border-radius:10px; border:1px solid black">
+                <div class="row text-white">
+                    <div class="col-3">
+                        <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                <div class="carousel-item active">
+                                    <img src="images/slider2.jpg" class="d-block w-100" alt="slider one">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="images/slider1.jpg" class="d-block w-100" alt="slider two">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="images/slider2.jpg" class="d-block w-100" alt="slider three">
+                                </div>
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-3 pt-5">
+                        <h1 class="text-warning text-uppercase">@room.Name</h1>
+                        <p>@((MarkupString)room.Details)</p>
+                    </div>
+                    <div class="col-3"></div>
+                    <div class="col-3">
+                        <a href="@($"hotel/room-details/{room.Id}")" class="btn btn-success" style="width:100%">Book</a>
+                        <p>Max Occupancy : @room.Ocupancy adults</p>
+                        <p>Vila size : @room.SqFt  sqft</p>
+                        <h1 class="text-warning">USD <span>@room.TotalAmount.ToString("#,#.00;(#,#.00#)")</span></h1>
+                        
+                        <p>cost for @room.TotalDays nights</p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <h3> Loding ...</h3>
+    }
+</div>
 
 @code {
     public HomeVM HomeModel { get; set; } = new HomeVM();
-    public IEnumerable<HotelRoomDTO> rooms {get;set;}  = new List<HotelRoomDTO>();
+    public IEnumerable<HotelRoomDTO> rooms { get; set; } = new List<HotelRoomDTO>();
+    private bool IsProcessing { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            if(await localStorage.GetItemAsync<HomeVM>(CD.Local_InitialBooking) != null)
+            await Task.Delay(5000);
+            if (await localStorage.GetItemAsync<HomeVM>(CD.Local_InitialBooking) != null)
             {
-                HomeModel =await localStorage.GetItemAsync<HomeVM>(CD.Local_InitialBooking);
+                HomeModel = await localStorage.GetItemAsync<HomeVM>(CD.Local_InitialBooking);
             }
             else
             {
@@ -24,14 +115,30 @@ Hotel Rooms
             }
             await LoadRooms();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-             await jsRuntime.InvokeVoidAsync("showMessage", "error", e.Message);
+            await jsRuntime.InvokeVoidAsync("showMessage", "error", e.Message);
         }
     }
 
     private async Task LoadRooms()
     {
         rooms = await hotelRoom.GetHotelRooms(HomeModel.StartDate.ToString("MM/dd/yyyy"), HomeModel.EndDate.ToString("MM/dd/yyyy"));
+        foreach (var room in rooms)
+        {
+            room.TotalDays = HomeModel.NoOfNights;
+            room.TotalAmount = room.RegularRate * HomeModel.NoOfNights;
+
+        }
+    }
+
+    private async Task OnInitialData()
+    {
+        IsProcessing = true;
+        HomeModel.EndDate = HomeModel.StartDate.AddDays(HomeModel.NoOfNights);
+        await localStorage.SetItemAsync(CD.Local_InitialBooking, HomeModel);
+        await LoadRooms();
+        IsProcessing = false;
+
     }
 }
