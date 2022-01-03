@@ -53,6 +53,7 @@ namespace HidingVila_server
             services.AddScoped<IDbInitialize, DbInitialize>();
             services.AddScoped<IHotelImage, HotelRoomImageServices>();
             services.AddScoped<IUploadFile, UploadService>();
+            services.AddScoped<IHotelEmenity, HotelEmenityService>();
 
             // for access to url address on this project
             services.AddHttpContextAccessor();
