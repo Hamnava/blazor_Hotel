@@ -1,0 +1,66 @@
+﻿@page "/"
+@inject ILocalStorageService localStorage
+@inject IJSRuntime jsRuntime
+@inject NavigationManager _nav
+
+   <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="images/slider2.jpg" class="d-block w-100" height="500" alt="slider one">
+    </div>
+    <div class="carousel-item">
+      <img src="images/slider1.jpg" class="d-block w-100"height="500" alt="slider two">
+    </div>
+    <div class="carousel-item">
+      <img src="images/slider2.jpg" class="d-block w-100"height="500" alt="slider three">
+    </div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+
+<EditForm Model="HomeModel" OnValidSubmit="SaveInitializeData">
+<div class="container">
+  <div class="row justify-content-md-center my-5">
+    <div class="col col-lg-4">
+     <label>Check in Date</label>
+     <InputDate min="@DateTime.Now.ToString("yyyy-MM-dd")" @bind-Value="HomeModel.StartDate" class="form-control" />
+    </div>
+    <div class="col-md-4">
+     <label>No of Nights</label>
+     <select class="form-control" @bind="HomeModel.NoOfNights">
+         @for (var i = 1; i <= 10; i++)
+        {
+            <option>@i</option>
+        }
+     </select>
+    </div>
+    <div class="col col-lg-1 mt-4">
+     <input type="submit" class="btn btn-dark" value="Go"/>
+    </div>
+  </div>
+</div>
+</EditForm>
+
+@code {
+    public HomeVM HomeModel { get; set; } = new HomeVM(); 
+
+    private async Task SaveInitializeData()
+    {
+        try{
+            HomeModel.EndDate = HomeModel.StartDate.AddDays(HomeModel.NoOfNights);
+            await localStorage.SetItemAsync(CD.Local_InitialBooking, HomeModel);
+             _nav.NavigateTo("hotel/room", true);
+        }
+        catch(Exception ex)
+        {
+            await jsRuntime.ToastrError(ex.Message);
+        }
+    }
+}
