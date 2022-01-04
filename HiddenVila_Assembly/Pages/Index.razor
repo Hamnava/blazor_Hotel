@@ -2,63 +2,88 @@
 @inject ILocalStorageService localStorage
 @inject IJSRuntime jsRuntime
 @inject NavigationManager _nav
+@inject IHotelEmenity _emenity
 
-   <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <img src="images/slider2.jpg" class="d-block w-100" height="500" alt="slider one">
+<div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="images/slider2.jpg" class="d-block w-100" height="500" alt="slider one">
+        </div>
+        <div class="carousel-item">
+            <img src="images/slider1.jpg" class="d-block w-100" height="500" alt="slider two">
+        </div>
+        <div class="carousel-item">
+            <img src="images/slider2.jpg" class="d-block w-100" height="500" alt="slider three">
+        </div>
     </div>
-    <div class="carousel-item">
-      <img src="images/slider1.jpg" class="d-block w-100"height="500" alt="slider two">
-    </div>
-    <div class="carousel-item">
-      <img src="images/slider2.jpg" class="d-block w-100"height="500" alt="slider three">
-    </div>
-  </div>
-  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Previous</span>
-  </button>
-  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Next</span>
-  </button>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
 </div>
 
 <EditForm Model="HomeModel" OnValidSubmit="SaveInitializeData">
-<div class="container">
-  <div class="row justify-content-md-center my-5">
-    <div class="col col-lg-4">
-     <label>Check in Date</label>
-     <InputDate min="@DateTime.Now.ToString("yyyy-MM-dd")" @bind-Value="HomeModel.StartDate" class="form-control" />
+    <div class="container">
+        <div class="row justify-content-md-center my-5">
+            <div class="col col-lg-4">
+                <label>Check in Date</label>
+                <InputDate min="@DateTime.Now.ToString("yyyy-MM-dd")" @bind-Value="HomeModel.StartDate" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label>No of Nights</label>
+                <select class="form-control" @bind="HomeModel.NoOfNights">
+                    @for (var i = 1; i <= 10; i++)
+                    {
+                        <option>@i</option>
+                    }
+                </select>
+            </div>
+            <div class="col col-lg-1 mt-4">
+                <input type="submit" class="btn btn-dark" value="Go" />
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-     <label>No of Nights</label>
-     <select class="form-control" @bind="HomeModel.NoOfNights">
-         @for (var i = 1; i <= 10; i++)
-        {
-            <option>@i</option>
-        }
-     </select>
-    </div>
-    <div class="col col-lg-1 mt-4">
-     <input type="submit" class="btn btn-dark" value="Go"/>
-    </div>
-  </div>
-</div>
 </EditForm>
 
+<div class="container">
+    <div class="row">
+        @foreach (var item in EmenityModel)
+        {
+            <div class="col-4 p-4 text-center">
+                <div style="background-color:black; color:white; border-radius:15px; padding:10px;">
+                    <span style="font-size:50px; padding:20px 0"><i class="@item.FontIcon fa-lg"></i></span>
+                    <h3 class="pb-2">@item.Name</h3>
+                    <p class="px-4">@((MarkupString)item.Description)</p>
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
 @code {
-    public HomeVM HomeModel { get; set; } = new HomeVM(); 
+    public HomeVM HomeModel { get; set; } = new HomeVM();
+    public IEnumerable<HotelEmenityDTO> EmenityModel { get; set; } = new List<HotelEmenityDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        EmenityModel = await _emenity.GetAllEemenities();
+    }
 
     private async Task SaveInitializeData()
     {
-        try{
+        try
+        {
             HomeModel.EndDate = HomeModel.StartDate.AddDays(HomeModel.NoOfNights);
             await localStorage.SetItemAsync(CD.Local_InitialBooking, HomeModel);
-             _nav.NavigateTo("hotel/room", true);
+            _nav.NavigateTo("hotel/room", true);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await jsRuntime.ToastrError(ex.Message);
         }
