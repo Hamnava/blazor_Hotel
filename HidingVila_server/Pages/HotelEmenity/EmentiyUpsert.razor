@@ -1,0 +1,165 @@
+﻿@page "/hotel-emenity/create"
+@page "/hotel-emenity/edit/{Id:int}"
+@using HidingVila_server.Service.IService
+@using Models
+@inject IHotelEmenity _ementiy
+@inject NavigationManager nav
+@inject IJSRuntime JsRuntime
+
+@attribute [Authorize(Roles = Common.CD.Role_Admin)]
+
+<div class="row mt-2 mb-5">
+    <div class="col-12">
+        <div class="card p-5">
+            <div class="card-title text-info">
+                <h2>@Title Emenity</h2>
+            </div>
+            <div class="card-body">
+                <EditForm Model="EmenityModel" OnValidSubmit="OnUpsert">
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label>Name</label>
+                        <InputText @bind-Value="@EmenityModel.Name" class="form-control"></InputText>
+                        <ValidationMessage For="()=> EmenityModel.Name"></ValidationMessage>
+                    </div>
+                    <div class="form-group">
+                        <label>Icon</label>
+                        <InputNumber @bind-Value="@EmenityModel.FontIcon" class="form-control"></InputNumber>
+                        <ValidationMessage For="()=> EmenityModel.FontIcon"></ValidationMessage>
+                    </div>
+                    <div class="form-group">
+                        <label>Time Range</label>
+                        <InputNumber @bind-Value="@EmenityModel.Time" class="form-control"></InputNumber>
+                        <ValidationMessage For="()=> EmenityModel.Time"></ValidationMessage>
+                    </div>
+                   
+                    <div class="form-group mb-4" style="height:270px">
+                        <label>Details</label>
+                        @* <InputTextArea @bind-Value="@HotelRoomModel.Details" class="form-control"></InputTextArea>*@
+                        <BlazoredTextEditor @ref="@QuillHtml" Placeholder="Enter the room details">
+                            <ToolbarContent>
+                                <select class="ql-header">
+                                    <option selected=""></option>
+                                    <option value="1"></option>
+                                    <option value="2"></option>
+                                    <option value="3"></option>
+                                    <option value="4"></option>
+                                    <option value="5"></option>
+                                </select>
+                                <span class="ql-formats">
+                                    <button class="ql-bold"></button>
+                                    <button class="ql-italic"></button>
+                                    <button class="ql-underline"></button>
+                                    <button class="ql-strike"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <select class="ql-color"></select>
+                                    <select class="ql-background"></select>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-list" value="ordered"></button>
+                                    <button class="ql-list" value="bullet"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-link"></button>
+                                </span>
+                            </ToolbarContent>
+                            <EditorContent>
+
+                            </EditorContent>
+                        </BlazoredTextEditor>
+                    </div>
+                   
+                    
+                    <button class="btn btn-primary mt-3">@Title Emenity</button>
+                    <NavLink class="btn btn-secondary mt-3" href="hotelEmenity">Back to list</NavLink>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private HotelEmenityDTO EmenityModel { get; set; } = new HotelEmenityDTO();
+    private string Title { get; set; } = "Create";
+
+    public BlazoredTextEditor QuillHtml { get; set; } = new BlazoredTextEditor();
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState {  get;  set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // for athenticatioin
+        var authenticatedState = await AuthenticationState;
+        if (!authenticatedState.User.IsInRole(Common.CD.Role_Admin))
+        {
+            var uri =new Uri(nav.Uri);
+            nav.NavigateTo($"/Identity/account/login?returnUrl={uri.LocalPath}");
+        }
+        if (Id != null)
+        {
+            // Update
+            Title = "Update";
+            EmenityModel = await _ementiy.GetHotelEmenity(Id.Value);
+        }
+        else
+        {
+            // create
+            EmenityModel = new HotelEmenityDTO();
+        }
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        bool Rendering = true;
+        while (Rendering)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(EmenityModel.Description))
+                {
+                    await this.QuillHtml.LoadHTMLContent(EmenityModel.Description);
+                }
+                Rendering = false;
+            }
+            catch
+            {
+                await Task.Delay(10);
+                Rendering = true;
+            }
+        }
+
+        //return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task OnUpsert()
+    {
+        var Ementiy = await _ementiy.ExistEmenityName(EmenityModel.Name, EmenityModel.Id);
+        if (Ementiy != null)
+        {
+            await JsRuntime.InvokeVoidAsync("showMessage", "error", "The emenity name is aleady exist!");
+            return;
+        }
+        if (EmenityModel.Id != 0 && Title == "Update")
+        {
+            // update
+            EmenityModel.Description = await QuillHtml.GetHTML();
+            var update = await _ementiy.UpdateHotelEmenity(EmenityModel.Id, EmenityModel);
+           
+            await JsRuntime.InvokeVoidAsync("showMessage", "success", "Emenity Updated successfully");
+        }
+        else
+        {
+            // create
+            EmenityModel.Description = await QuillHtml.GetHTML();
+            var createdResult = await _ementiy.CreateHotelEmenity(EmenityModel);
+            await JsRuntime.InvokeVoidAsync("showMessage", "success", "Ementiy Created successfully");
+        }
+        nav.NavigateTo("hotelEmenity");
+    }
+}

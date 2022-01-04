@@ -30,6 +30,32 @@ namespace Business.Repository
             return _mapper.Map<HotelEmenity, HotelEmenityDTO>(addEmenity.Entity);
         }
 
+        public async Task<HotelEmenityDTO> ExistEmenityName(string emenityName, int emenityId = 0)
+        {
+            try
+            {
+                if (emenityId == 0)
+                {
+                    var emenity = _mapper.Map<HotelEmenity, HotelEmenityDTO>(
+                    await _context.HotelEmenities.FirstOrDefaultAsync(r => r.Name == emenityName));
+
+                    return emenity;
+                }
+                else
+                {
+                    var emenity = _mapper.Map<HotelEmenity, HotelEmenityDTO>(
+                    await _context.HotelEmenities.FirstOrDefaultAsync(r => r.Name == emenityName
+                    && r.Id != emenityId));
+
+                    return emenity;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public async Task<IEnumerable<HotelEmenityDTO>> GetHotelEmenities()
         {
             try

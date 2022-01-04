@@ -1,0 +1,78 @@
+﻿@page "/hotelEmenity"
+@using HidingVila_server.Service.IService
+@using Models
+@inject IHotelEmenity _emenity
+@inject NavigationManager nav
+@inject IJSRuntime jsRuntime
+@attribute [Authorize(Roles = Common.CD.Role_Admin)]
+
+<div class="row mt-4">
+    <div class="col-8">
+        <h4 class="card-title text-info">Hotel Emenities's List</h4>
+    </div>
+    <div class="col-3 offset-1">
+        <NavLink href="hotel-emenity/create" class="btn btn-info">Add New Emenity</NavLink>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-12">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Icon</th>
+                    <th>Time</th>     
+                    <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ementies)
+               {
+                   <tr>
+                       <td>@item.Name</td>
+                       <td><i class="@item.FontIcon"></i></td>
+                       <td>@item.Time</td>
+                       <td>
+                           <NavLink href=@($"hotel-emenity/edit/{item.Id}") class="btn btn-info">Edit</NavLink>
+                           <button @onclick="()=> HandlDelete(item.Id)"  class="btn btn-danger">Delete</button>
+                       </td>
+                   </tr>
+               }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<DeleteConfirmationComponent IsParentProcessing="IsProcessing" ConfimationChanged="ConfirmDelete_Click"></DeleteConfirmationComponent>
+@code {
+    private IEnumerable<HotelEmentiyDTO> ementies = new List<HotelEmentiyDTO>();
+    private int? DeleteRoomId { get; set; } = null;
+    private bool IsProcessing { get; set; } = false;
+
+    protected override async void OnInitialized()
+    {
+        ementies = await _emenity.GetHotelEmenities();
+    }
+
+    private async Task HandlDelete(int Id)
+    {
+        DeleteRoomId = Id;
+        await jsRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDelete_Click(bool IsConfirmed)
+    {
+        IsProcessing = true;
+        if (IsConfirmed && DeleteRoomId !=null)
+        {
+            HotelEmentiyDTO emenity = await _emenity.GetHotelEmenity(DeleteRoomId.Value);
+           
+
+            await _emenity.RemoveHotelEmenity(DeleteRoomId.Value);
+            await jsRuntime.InvokeVoidAsync("showMessage", "success", "Hotel Emenity deleted successfuly");
+            emenity = await _emenity.GetHotelEmenities();
+        }
+        IsProcessing = false;
+        await jsRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+    }
+}

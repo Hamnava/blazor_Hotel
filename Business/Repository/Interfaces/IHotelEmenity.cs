@@ -14,5 +14,6 @@ namespace Business.Repository.Interfaces
         Task<HotelEmenityDTO> GetHotelEmenity(int emenityId);
         Task<IEnumerable<HotelEmenityDTO>> GetHotelEmenities();
         Task<int> RemoveHotelEmenity(int emenityId);
+        Task<HotelEmenityDTO> ExistEmenityName(string emenityName, int emenityId = 0);
     }
 }
