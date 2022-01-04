@@ -1,0 +1,183 @@
+﻿@page "/hotel/room-details/{Id:int}"
+@inject IJSRuntime JsRuntime
+@inject ILocalStorageService localStorage
+@inject IHotelRoom hotelRoomService
+
+@if (RoomBooking?.orderDetails?.HotelRoomDTO?.HotelImages == null)
+{
+    <h3 class="text-info">Loading...</h3>
+}
+else
+{
+    <div class="container mt-3">
+        <div class="row bg-dark text-white">
+            <div class="col-8">
+                <div style="display:flex; justify-content:space-between;">
+                    <h5>Selectd Room</h5>
+                    <a class="btn btn-secondary">Back to Rooms</a>
+                </div>
+                <hr class="my-4" />
+                <div class="row text-white">
+                    <div class="col-7">
+                        <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                <div class="carousel-item active">
+                                    <img src="images/slider2.jpg" class="d-block w-100" alt="slider one">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="images/slider1.jpg" class="d-block w-100" alt="slider two">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="images/slider2.jpg" class="d-block w-100" alt="slider three">
+                                </div>
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
+
+
+                    </div>
+
+                    <div class="col-5">
+
+                        <p>Max Occupancy : @RoomBooking.orderDetails.HotelRoomDTO.Ocupancy adults</p>
+                        <p>Vila size : @RoomBooking.orderDetails.HotelRoomDTO.SqFt  sqft</p>
+                        <h1 class="text-warning">
+                            USD
+                            <span>@RoomBooking.orderDetails.HotelRoomDTO.TotalAmount.ToString("#,#.00#;(#,#.00#)")</span>
+                        </h1>
+                        <p>cost for @RoomBooking.orderDetails.HotelRoomDTO.TotalDays</p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <h4 class="text-warning text-uppercase">@RoomBooking.orderDetails.HotelRoomDTO.Name</h4>
+                    <p>@((MarkupString)RoomBooking.orderDetails.HotelRoomDTO.Details)</p>
+                </div>
+            </div>
+            <div class="col-4">
+
+                <h5>Enter Details</h5>
+                <hr class="my-4 mt-5" />
+                <EditForm Model="RoomBooking" OnValidSubmit="HandleCheckOut">
+                    <label>Name</label>
+                    <InputText @bind-Value="RoomBooking.orderDetails.Name" class="form-control mb-3" />
+                    <label>Phone </label>
+                    <InputText @bind-Value="RoomBooking.orderDetails.Phone" class="form-control mb-3" />
+                    <label>Email</label>
+                    <InputText @bind-Value="RoomBooking.orderDetails.Email" class="form-control mb-3" />
+                    <label>Check In Date</label>
+                    <InputDate @bind-Value="RoomBooking.orderDetails.CheckInDate" disabled class="form-control mb-3" />
+                    <label>Check Out Date</label>
+                    <InputDate @bind-Value="RoomBooking.orderDetails.CheckOutDate" disabled class="form-control mb-3" />
+                    <label>No of Nights</label>
+                    <select class="form-control" value="@NoOfNights" @onchange="HandleNoOfNightsChanges">
+                        @for (var i = 1; i <= 10; i++)
+                        {
+                            if(i == NoOfNights)
+                            {
+                            <option value="@i" selected="selected">@i</option>
+                            }
+                            <option  value="@i">@i</option>
+                        }
+                    </select>
+
+                    <input type="submit" class="form-control btn btn-success my-3" value"CheckOut" />
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    public OrderRoomBookingVM RoomBooking { get; set; } = new OrderRoomBookingVM();
+
+    public int NoOfNights { get; set; } = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            RoomBooking.orderDetails = new RoomOrderDetailsDTO();
+            if (Id != null)
+            {
+                if (await localStorage.GetItemAsync<HomeVM>(CD.Local_InitialBooking) != null)
+                {
+                    var roomInitialInfo = await localStorage.GetItemAsync<HomeVM>(CD.Local_InitialBooking);
+                    RoomBooking.orderDetails.HotelRoomDTO = await hotelRoomService.GetHotelRoomDetails(Id.Value,
+                    roomInitialInfo.StartDate.ToString("MM/dd/yyyy"), roomInitialInfo.EndDate.ToString("MM/dd/yyyy"));
+                    NoOfNights = roomInitialInfo.NoOfNights;
+                    RoomBooking.orderDetails.CheckInDate = roomInitialInfo.StartDate;
+                    RoomBooking.orderDetails.CheckOutDate = roomInitialInfo.EndDate;
+                    RoomBooking.orderDetails.HotelRoomDTO.TotalDays = roomInitialInfo.NoOfNights;
+                    RoomBooking.orderDetails.HotelRoomDTO.TotalAmount =
+                    roomInitialInfo.NoOfNights * RoomBooking.orderDetails.HotelRoomDTO.RegularRate;
+
+                }
+                else
+                {
+                    RoomBooking.orderDetails.HotelRoomDTO = await hotelRoomService.GetHotelRoomDetails(Id.Value,
+                    DateTime.Now.ToString("MM/dd/yyyy"), DateTime.Now.AddDays(1).ToString("MM/dd/yyyy"));
+                    NoOfNights = 1;
+                    RoomBooking.orderDetails.CheckInDate = DateTime.Now;
+                    RoomBooking.orderDetails.CheckOutDate = DateTime.Now.AddDays(1);
+                    RoomBooking.orderDetails.HotelRoomDTO.TotalDays = 1;
+                    RoomBooking.orderDetails.HotelRoomDTO.TotalAmount = RoomBooking.orderDetails.HotelRoomDTO.RegularRate;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await JsRuntime.ToastrError(e.Message);
+        }
+    }
+
+    private async Task HandleNoOfNightsChanges(ChangeEventArgs e)
+    {
+        NoOfNights = Convert.ToInt32(e.Value.ToString());
+        RoomBooking.orderDetails.HotelRoomDTO = await hotelRoomService.GetHotelRoomDetails(Id.Value,
+        RoomBooking.orderDetails.CheckInDate.ToString("MM/dd/yyyy"), RoomBooking.orderDetails.CheckInDate.AddDays(NoOfNights).ToString("MM/dd/yyyy"));
+
+        RoomBooking.orderDetails.CheckOutDate = RoomBooking.orderDetails.CheckInDate.AddDays(NoOfNights);
+        RoomBooking.orderDetails.HotelRoomDTO.TotalDays = NoOfNights;
+        RoomBooking.orderDetails.HotelRoomDTO.TotalAmount = NoOfNights * RoomBooking.orderDetails.HotelRoomDTO.RegularRate;
+    }
+
+    private async Task HandleCheckOut()
+    {
+        if (!await HandleValidation())
+        {
+            return;
+        }
+    }
+
+    private async Task<bool> HandleValidation()
+    {
+        if (string.IsNullOrEmpty(RoomBooking.orderDetails.Name))
+        {
+            await JsRuntime.InvokeVoidAsync("showMessage", "error","the Name field can not be empty");
+            return false;
+        }
+        if (string.IsNullOrEmpty(RoomBooking.orderDetails.Phone))
+        {
+             await JsRuntime.InvokeVoidAsync("showMessage", "error","the Phone field can not be empty");
+            return false;
+        }
+        if (string.IsNullOrEmpty(RoomBooking.orderDetails.Email))
+        {
+             await JsRuntime.InvokeVoidAsync("showMessage", "error","the Email field can not be empty");
+            return false;
+        }
+        return true;
+    }
+}

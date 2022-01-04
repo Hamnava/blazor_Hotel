@@ -1,6 +1,7 @@
 ﻿using HiddenVila_Assembly.Services.IServices;
 using Models;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json.Serialization;
@@ -16,9 +17,21 @@ namespace HiddenVila_Assembly.Services
             _client = client; 
         }
 
-        public Task<HotelRoomDTO> GetHotelRoomDetails(int roomId, string checkInDate, string checkoutDate)
+        public async Task<HotelRoomDTO> GetHotelRoomDetails(int roomId, string checkInDate, string checkoutDate)
         {
-            throw new System.NotImplementedException();
+            var response = await _client.GetAsync($"api/HotelRoom/{roomId}?checkInDate={checkInDate}&checkOutDate={checkoutDate}");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var room = JsonConvert.DeserializeObject<HotelRoomDTO>(content);
+                return room;
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var errorModel = JsonConvert.DeserializeObject<ErrorModel>(content);
+                throw new Exception(errorModel.ErrorMessage);
+            }
         }
 
         public async Task<IEnumerable<HotelRoomDTO>> GetHotelRooms(string checkInDate, string checkoutDate)

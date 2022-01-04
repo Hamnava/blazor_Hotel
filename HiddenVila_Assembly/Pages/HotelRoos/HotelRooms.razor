@@ -71,11 +71,11 @@
                             </button>
                         </div>
                     </div>
-                    <div class="col-3 pt-5">
-                        <h1 class="text-warning text-uppercase">@room.Name</h1>
+                    <div class="col-6">
+                        <h4 class="text-warning text-uppercase">@room.Name</h4>
                         <p>@((MarkupString)room.Details)</p>
                     </div>
-                    <div class="col-3"></div>
+                    
                     <div class="col-3">
                         <a href="@($"hotel/room-details/{room.Id}")" class="btn btn-success" style="width:100%">Book</a>
                         <p>Max Occupancy : @room.Ocupancy adults</p>
