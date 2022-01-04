@@ -45,7 +45,7 @@
 
 <DeleteConfirmationComponent IsParentProcessing="IsProcessing" ConfimationChanged="ConfirmDelete_Click"></DeleteConfirmationComponent>
 @code {
-    private IEnumerable<HotelEmentiyDTO> ementies = new List<HotelEmentiyDTO>();
+    private IEnumerable<HotelEmenityDTO> ementies = new List<HotelEmenityDTO>();
     private int? DeleteRoomId { get; set; } = null;
     private bool IsProcessing { get; set; } = false;
 
@@ -65,12 +65,9 @@
         IsProcessing = true;
         if (IsConfirmed && DeleteRoomId !=null)
         {
-            HotelEmentiyDTO emenity = await _emenity.GetHotelEmenity(DeleteRoomId.Value);
-           
-
             await _emenity.RemoveHotelEmenity(DeleteRoomId.Value);
             await jsRuntime.InvokeVoidAsync("showMessage", "success", "Hotel Emenity deleted successfuly");
-            emenity = await _emenity.GetHotelEmenities();
+            ementies = await _emenity.GetHotelEmenities();
         }
         IsProcessing = false;
         await jsRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");

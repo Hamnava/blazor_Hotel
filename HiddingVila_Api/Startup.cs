@@ -52,6 +52,7 @@ namespace HiddingVila_Api
             // Reposiroty configuration
             services.AddScoped<IHotelRoom, HotelRoomService>();
             services.AddScoped<IHotelImage, HotelRoomImageServices>();
+            services.AddScoped<IHotelEmenity, HotelEmenityService>();
 
             // For APISettings
             var appSettingsSection = Configuration.GetSection("APISettings");
