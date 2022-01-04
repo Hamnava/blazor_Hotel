@@ -1,6 +1,6 @@
 ﻿@page "/hotel-emenity/create"
 @page "/hotel-emenity/edit/{Id:int}"
-@using HidingVila_server.Service.IService
+
 @using Models
 @inject IHotelEmenity _ementiy
 @inject NavigationManager nav
@@ -15,7 +15,7 @@
                 <h2>@Title Emenity</h2>
             </div>
             <div class="card-body">
-                <EditForm Model="EmenityModel" OnValidSubmit="OnUpsert">
+                <EditForm Model="EmenityModel" OnValidSubmit="OnUpsert" OnInvalidSubmit="InvalidOption">
                     <DataAnnotationsValidator />
                     <div class="form-group">
                         <label>Name</label>
@@ -24,19 +24,18 @@
                     </div>
                     <div class="form-group">
                         <label>Icon</label>
-                        <InputNumber @bind-Value="@EmenityModel.FontIcon" class="form-control"></InputNumber>
+                        <InputText @bind-Value="@EmenityModel.FontIcon" class="form-control"></InputText>
                         <ValidationMessage For="()=> EmenityModel.FontIcon"></ValidationMessage>
                     </div>
                     <div class="form-group">
                         <label>Time Range</label>
-                        <InputNumber @bind-Value="@EmenityModel.Time" class="form-control"></InputNumber>
+                        <InputText @bind-Value="@EmenityModel.Time" class="form-control"></InputText>
                         <ValidationMessage For="()=> EmenityModel.Time"></ValidationMessage>
                     </div>
                    
-                    <div class="form-group mb-4" style="height:270px">
-                        <label>Details</label>
-                        @* <InputTextArea @bind-Value="@HotelRoomModel.Details" class="form-control"></InputTextArea>*@
-                        <BlazoredTextEditor @ref="@QuillHtml" Placeholder="Enter the room details">
+                    <div class="form-group pb-5" style="height:270px">
+                        <label>Description</label>
+                        <BlazoredTextEditor @ref="@QuillHtml" Placeholder="Enter the Emenity description">
                             <ToolbarContent>
                                 <select class="ql-header">
                                     <option selected=""></option>
@@ -70,8 +69,8 @@
                         </BlazoredTextEditor>
                     </div>
                    
-                    
-                    <button class="btn btn-primary mt-3">@Title Emenity</button>
+                    <div class="pt-5"></div>
+                    <button type="submit" class="btn btn-primary mt-3">@Title Emenity</button>
                     <NavLink class="btn btn-secondary mt-3" href="hotelEmenity">Back to list</NavLink>
                 </EditForm>
             </div>
@@ -150,7 +149,7 @@
             // update
             EmenityModel.Description = await QuillHtml.GetHTML();
             var update = await _ementiy.UpdateHotelEmenity(EmenityModel.Id, EmenityModel);
-           
+
             await JsRuntime.InvokeVoidAsync("showMessage", "success", "Emenity Updated successfully");
         }
         else
@@ -161,5 +160,10 @@
             await JsRuntime.InvokeVoidAsync("showMessage", "success", "Ementiy Created successfully");
         }
         nav.NavigateTo("hotelEmenity");
+    }
+
+    private async Task InvalidOption()
+    {
+        var invalie = EmenityModel;
     }
 }
