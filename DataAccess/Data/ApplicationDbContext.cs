@@ -21,5 +21,6 @@ namespace DataAccess.Data
         public DbSet<HotelImagesUrl> HotelImagesUrls { get; set; }
         public DbSet<HotelEmenity> HotelEmenities { get; set; }
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<RoomOrderDetails> RoomOrderDetails { get; set; }
     }
 }
