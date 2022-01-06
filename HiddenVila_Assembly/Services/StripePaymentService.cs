@@ -8,30 +8,25 @@ using System.Threading.Tasks;
 
 namespace HiddenVila_Assembly.Services
 {
-    public class RoomOrderDetialsService : IRoomOrderDetialsService
+    public class StripePaymentService : IStripePaymentService
     {
         private readonly HttpClient _client;
-        public RoomOrderDetialsService(HttpClient client)
+        public StripePaymentService(HttpClient client)
         {
             _client = client;
         }
-        public Task<RoomOrderDetailsDTO> MarkIsOrderSuccessful(RoomOrderDetailsDTO details)
+        public async Task<SucessModel> CheckOut(StripePaymentDTO model)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public async Task<RoomOrderDetailsDTO> SaveRooomOrderDetails(RoomOrderDetailsDTO details)
-        {
-            details.UserId = "Dummy user";
-            var content = JsonConvert.SerializeObject(details);
+            var content = JsonConvert.SerializeObject(model);
             var bodyContent = new StringContent(content, Encoding.UTF8, "application/json");
-            var response = await _client.PostAsync("api/RoomOrder/create", bodyContent);
+            var response = await _client.PostAsync("api/StripePayment/create", bodyContent);
 
-            string res =  response.Content.ReadAsStringAsync().Result;
+            string res = response.Content.ReadAsStringAsync().Result;
+
             if (response.IsSuccessStatusCode)
             {
                 var contentTemp = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<RoomOrderDetailsDTO>(contentTemp);
+                var result = JsonConvert.DeserializeObject<SucessModel>(contentTemp);
                 return result;
             }
             else

@@ -1,7 +1,10 @@
 ﻿@page "/hotel/room-details/{Id:int}"
+
 @inject IJSRuntime JsRuntime
 @inject ILocalStorageService localStorage
 @inject IHotelRoom hotelRoomService
+@inject IStripePaymentService paymentservice
+@inject IRoomOrderDetialsService roomOrderService
 
 @if (RoomBooking?.orderDetails?.HotelRoomDTO?.HotelImages == null)
 {
@@ -159,6 +162,34 @@ else
         {
             return;
         }
+        else
+        {
+            try
+            {
+                var paymentDTO = new StripePaymentDTO()
+                    {
+                        Amount = Convert.ToInt32(RoomBooking.orderDetails.HotelRoomDTO.TotalAmount * 100),
+                        ProductName = RoomBooking.orderDetails.HotelRoomDTO.Name,
+                        ReturnUrl = "/hotel/room-details/" + Id
+                    };
+                var result = await paymentservice.CheckOut(paymentDTO);
+
+                RoomBooking.orderDetails.StripeSessionId = result.Data.ToString();
+                RoomBooking.orderDetails.RoomId = RoomBooking.orderDetails.HotelRoomDTO.Id;
+                RoomBooking.orderDetails.TotalCost = RoomBooking.orderDetails.HotelRoomDTO.TotalAmount;
+
+                var roomOrderDetailsSaved = roomOrderService.SaveRooomOrderDetails(RoomBooking.orderDetails);
+
+                await localStorage.SetItemAsync(CD.Local_RoomOrderDetails, roomOrderDetailsSaved);
+
+                await JsRuntime.InvokeVoidAsync("redirctToChekOut", result.Data.ToString());
+
+            }
+            catch (Exception)
+            {
+               await JsRuntime.InvokeVoidAsync("showMessage", "error","The CheckOut Faild");
+            }
+    }
     }
 
     private async Task<bool> HandleValidation()
