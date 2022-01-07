@@ -20,16 +20,17 @@ namespace Models
         public DateTime CheckOutDate { get; set; }
         public DateTime ActualCheckInDate { get; set; }
         public DateTime ActualCheckOutDate { get; set; }
+        [Required]
         public double TotalCost { get; set; }
+        [Required]
         public int RoomId { get; set; }
-        public bool IsSuccessFulPayment { get; set; }
-        public string Status { get; set; }
+        public bool IsPaymentSuccessful { get; set; } = false;
         [Required]
         public string Name { get; set; }
-        public string Phone { get; set; }
         [Required]
         public string Email { get; set; }
-
+        public string Phone { get; set; }
         public HotelRoomDTO HotelRoomDTO { get; set; }
+        public string Status { get; set; }
     }
 }

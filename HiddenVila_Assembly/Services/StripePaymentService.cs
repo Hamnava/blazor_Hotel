@@ -21,7 +21,7 @@ namespace HiddenVila_Assembly.Services
             var bodyContent = new StringContent(content, Encoding.UTF8, "application/json");
             var response = await _client.PostAsync("api/StripePayment/create", bodyContent);
 
-            string res = response.Content.ReadAsStringAsync().Result;
+            //string res = response.Content.ReadAsStringAsync().Result;
 
             if (response.IsSuccessStatusCode)
             {

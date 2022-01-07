@@ -4,7 +4,7 @@
 @inject ILocalStorageService localStorage
 @inject IHotelRoom hotelRoomService
 @inject IStripePaymentService paymentservice
-@inject IRoomOrderDetialsService roomOrderService
+@inject IRoomOrderDetailsService roomOrderService
 
 @if (RoomBooking?.orderDetails?.HotelRoomDTO?.HotelImages == null)
 {
@@ -67,7 +67,7 @@ else
 
                 <h5>Enter Details</h5>
                 <hr class="my-4 mt-5" />
-                <EditForm Model="RoomBooking" OnValidSubmit="HandleCheckOut">
+                <EditForm Model="RoomBooking" OnValidSubmit="HandleCheckout">
                     <label>Name</label>
                     <InputText @bind-Value="RoomBooking.orderDetails.Name" class="form-control mb-3" />
                     <label>Phone </label>
@@ -111,6 +111,7 @@ else
     {
         try
         {
+            await Task.Delay(5000);
             RoomBooking.orderDetails = new RoomOrderDetailsDTO();
             if (Id != null)
             {
@@ -156,40 +157,39 @@ else
         RoomBooking.orderDetails.HotelRoomDTO.TotalAmount = NoOfNights * RoomBooking.orderDetails.HotelRoomDTO.RegularRate;
     }
 
-    private async Task HandleCheckOut()
+    private async Task HandleCheckout()
     {
         if (!await HandleValidation())
         {
             return;
         }
-        else
+
+        try
         {
-            try
+            var paymentDTO = new StripePaymentDTO()
             {
-                var paymentDTO = new StripePaymentDTO()
-                    {
-                        Amount = Convert.ToInt32(RoomBooking.orderDetails.HotelRoomDTO.TotalAmount * 100),
-                        ProductName = RoomBooking.orderDetails.HotelRoomDTO.Name,
-                        ReturnUrl = "/hotel/room-details/" + Id
-                    };
-                var result = await paymentservice.CheckOut(paymentDTO);
+                Amount = Convert.ToInt32(RoomBooking.orderDetails.HotelRoomDTO.TotalAmount * 100),
+                ProductName = RoomBooking.orderDetails.HotelRoomDTO.Name,
+                ReturnUrl = "/hotel/room-details/" + Id
+            };
 
-                RoomBooking.orderDetails.StripeSessionId = result.Data.ToString();
-                RoomBooking.orderDetails.RoomId = RoomBooking.orderDetails.HotelRoomDTO.Id;
-                RoomBooking.orderDetails.TotalCost = RoomBooking.orderDetails.HotelRoomDTO.TotalAmount;
+            var result = await paymentservice.CheckOut(paymentDTO);
 
-                var roomOrderDetailsSaved = roomOrderService.SaveRooomOrderDetails(RoomBooking.orderDetails);
+            RoomBooking.orderDetails.StripeSessionId = result.Data.ToString();
+            RoomBooking.orderDetails.RoomId = RoomBooking.orderDetails.HotelRoomDTO.Id;
+            RoomBooking.orderDetails.TotalCost = RoomBooking.orderDetails.HotelRoomDTO.TotalAmount;
 
-                await localStorage.SetItemAsync(CD.Local_RoomOrderDetails, roomOrderDetailsSaved);
+            var roomOrderDetailsSaved = await roomOrderService.SaveRoomOrderDetails(RoomBooking.orderDetails);
 
-                await JsRuntime.InvokeVoidAsync("redirctToChekOut", result.Data.ToString());
+            await localStorage.SetItemAsync(CD.Local_RoomOrderDetails, roomOrderDetailsSaved);
 
-            }
-            catch (Exception)
-            {
-               await JsRuntime.InvokeVoidAsync("showMessage", "error","The CheckOut Faild");
-            }
-    }
+            await JsRuntime.InvokeVoidAsync("redirectToCheckout", result.Data.ToString());
+        }
+        catch (Exception e)
+        {
+            await JsRuntime.InvokeVoidAsync("showMessage", "error",e.Message);
+        }
+
     }
 
     private async Task<bool> HandleValidation()

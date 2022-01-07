@@ -2,35 +2,69 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using Stripe.Checkout;
 using System.Threading.Tasks;
 
 namespace HiddingVila_Api.Controllers
 {
-    [Route("api/[controller]/[action]")]
     [ApiController]
-    public class RoomOrderController : ControllerBase
+    [Route("api/[controller]/[action]")]
+    public class RoomOrderController : Controller
     {
-        private readonly IRoomOrderDetails _details;
-        public RoomOrderController(IRoomOrderDetails details)
+        private readonly IRoomOrderDetailsRepository _repository;
+        //private readonly IEmailSender _emailSender;
+
+        public RoomOrderController(IRoomOrderDetailsRepository repository)
         {
-            _details = details;
+            _repository = repository;
+            //_emailSender = emailSender;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] RoomOrderDetailsDTO roomOrder)
+        public async Task<IActionResult> Create([FromBody] RoomOrderDetailsDTO details)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(new ErrorModel
-                {
-                    ErrorMessage = "An Error while create room order"
-                });
+                var result = await _repository.Create(details);
+                return Ok(result);
             }
             else
             {
-                var result = await _details.Create(roomOrder);
+                return BadRequest(new ErrorModel()
+                {
+                    ErrorMessage = "Error while creating Room Details/ Booking"
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PaymentSuccessful([FromBody] RoomOrderDetailsDTO details)
+        {
+
+            var service = new SessionService();
+            var sessionDetails = service.Get(details.StripeSessionId);
+            if (sessionDetails.PaymentStatus == "paid")
+            {
+                var result = await _repository.MarkPaymentSuccessful(details.Id);
+                if (result == null)
+                {
+                    return BadRequest(new ErrorModel()
+                    {
+                        ErrorMessage = "Can not mark payment as successful"
+                    });
+                }
+                //await _emailSender.SendEmailAsync(details.Email, "Booking Confirmed - Hidden Villa",
+                //    "Your booking has been confirmed at Hidden Villa with order ID :" + details.Id);
                 return Ok(result);
             }
+            else
+            {
+                return BadRequest(new ErrorModel()
+                {
+                    ErrorMessage = "Can not mark payment as successful"
+                });
+            }
+
         }
     }
 }
