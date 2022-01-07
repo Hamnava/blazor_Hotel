@@ -24,7 +24,8 @@ namespace HiddenVila_Assembly
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddScoped<IHotelRoom, HotelRoomService>();
             builder.Services.AddScoped<IHotelEmenity, HotelEmenityService>();
-            builder.Services.AddScoped<IRoomOrderDetialsService, RoomOrderDetialsService>();
+            builder.Services.AddScoped<IRoomOrderDetailsService, RoomOrderDetailsService>();
+            builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 
             await builder.Build().RunAsync();
         }

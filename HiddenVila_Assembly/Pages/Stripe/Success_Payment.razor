@@ -1,0 +1,39 @@
+﻿@page "/success-payment"
+@inject ILocalStorageService localStorag
+@inject IRoomOrderDetailsService roomOrderdetailsSerivce
+
+<div class="container">
+    @if (!IsPaymentComplete)
+   {
+        <h1 class="p-5 m-5 text-capitalize text-info">loding...</h1>
+    }
+    else
+    {
+        <div class="row">
+        <div class="col-8 offset-2 text-center">
+            <div class="alert alert-info py-5 mt-5">
+                <h2>Successful Booking</h2>
+                <p>Your room has been booked successful with OrderId @OrderId </p>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+
+@code {
+    private bool IsPaymentComplete { get; set; } = false;
+    private int OrderId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var roomOrder = await localStorag.GetItemAsync<RoomOrderDetailsDTO>(CD.Local_RoomOrderDetails);
+        OrderId = roomOrder.Id;
+
+        var FinalRoomOrderDetails = await roomOrderdetailsSerivce.MarkPaymentSuccessful(roomOrder);
+        if (FinalRoomOrderDetails.Status == CD.Status_Booked)
+        {
+            await localStorag.RemoveItemAsync(CD.Local_RoomOrderDetails);
+            IsPaymentComplete = true;
+        }
+    }
+}
