@@ -89,7 +89,10 @@ else
                             <option  value="@i">@i</option>
                         }
                     </select>
-
+                    @if (RoomBooking.orderDetails.HotelRoomDTO.IsBooked)
+                   {
+                       <input class="form-control btn btn-warning" disabled value="Sold Out" />
+                   }
                     <input type="submit" class="form-control btn btn-success my-3" value"CheckOut" />
                 </EditForm>
 

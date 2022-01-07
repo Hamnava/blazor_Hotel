@@ -14,6 +14,7 @@ namespace Business.Repository.Interfaces
         Task<HotelRoomDTO> GetHotelRoom(int roomid, string checkInDate = null, string checkOutDate = null);
         Task<IEnumerable<HotelRoomDTO>> GetRooms(string checkInDate= null, string checkOutDate = null);
         Task<HotelRoomDTO> ExistRoomName(string roomName, int roomid = 0);
+        Task<bool> IsRoomBooked(int RoomId, string checkInDatestr, string checkOutDatestr);
         Task<int> RemoveHotelRoom(int id);
     }
 }

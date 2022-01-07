@@ -77,7 +77,14 @@
                     </div>
                     
                     <div class="col-3">
+                        @if (room.IsBooked)
+                       {
+                        <button class="btn btn-warning" disabled style="width:100%">Sold Out</button>   
+                       }
+                        else
+                        {
                         <a href="@($"hotel/room-details/{room.Id}")" class="btn btn-success" style="width:100%">Book</a>
+                        }
                         <p>Max Occupancy : @room.Ocupancy adults</p>
                         <p>Vila size : @room.SqFt  sqft</p>
                         <h1 class="text-warning">USD <span>@room.TotalAmount.ToString("#,#.00;(#,#.00#)")</span></h1>

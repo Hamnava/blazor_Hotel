@@ -66,12 +66,49 @@ namespace Business.Repository
                 HotelRoomDTO hotelRoom = _mapper.Map<HotelRoom, HotelRoomDTO>(
                 await _context.HotelRooms.Include(x=> x.HotelImages).FirstOrDefaultAsync(r => r.Id == roomid ));
 
+                if (!string.IsNullOrEmpty(checkInDateStr) && !string.IsNullOrEmpty(checkOutDateStr))
+                {
+                    hotelRoom.IsBooked = await IsRoomBooked(roomid, checkInDateStr, checkOutDateStr);
+                }
+
                 return hotelRoom;
             }
             catch (Exception)
             {
                 return null;
             }
+        }
+
+        public async Task<bool> IsRoomBooked(int RoomId, string checkInDatestr, string checkOutDatestr)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(checkOutDatestr) && !string.IsNullOrEmpty(checkInDatestr))
+                {
+                    DateTime checkInDate = DateTime.ParseExact(checkInDatestr, "MM/dd/yyyy", null);
+                    DateTime checkOutDate = DateTime.ParseExact(checkOutDatestr, "MM/dd/yyyy", null);
+
+                    var existingBooking = await _context.RoomOrderDetails.Where(x => x.RoomId == RoomId && x.IsPaymentSuccessful &&
+                       //check if checkin date that user wants does not fall in between any dates for room that is booked
+                       ((checkInDate < x.CheckOutDate && checkInDate.Date >= x.CheckInDate)
+                       //check if checkout date that user wants does not fall in between any dates for room that is booked
+                       || (checkOutDate.Date > x.CheckInDate.Date && checkInDate.Date <= x.CheckInDate.Date)
+                       )).FirstOrDefaultAsync();
+
+                    if (existingBooking != null)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+
         }
 
         public async Task<IEnumerable<HotelRoomDTO>> GetRooms(string checkInDateStr, string checkOutDateStr)
@@ -81,6 +118,15 @@ namespace Business.Repository
                 var roomList =
                   _mapper.Map<IEnumerable<HotelRoom>, IEnumerable<HotelRoomDTO>>
                   ( _context.HotelRooms.Include(x=> x.HotelImages));
+
+                if (!string.IsNullOrEmpty(checkInDateStr) && !string.IsNullOrEmpty(checkOutDateStr))
+                {
+                    foreach (HotelRoomDTO hotelRoom in roomList)
+                    {
+                       hotelRoom.IsBooked = await IsRoomBooked(hotelRoom.Id, checkInDateStr, checkOutDateStr);
+                    }
+                }
+
                 return roomList;
             }
             catch (Exception ex)
