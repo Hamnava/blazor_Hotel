@@ -12,8 +12,17 @@
        
       </ul>
       <form class="d-flex">
-            <a class="btn px-4 text-white" href="registration">Register</a> 
-            <a class="btn px-4 text-white" href="login">Login</a> 
+          <AuthorizeView>
+              <Authorized>
+                  <a class="btn px-4 text-white" href="">Welcome, @context.User.Identity.Name</a> 
+                 <a class="btn px-4 text-white" href="login">LogOut</a> 
+              </Authorized>
+              <NotAuthorized>
+                  <a class="btn px-4 text-white" href="registration">Register</a> 
+                  <a class="btn px-4 text-white" href="login">Login</a> 
+              </NotAuthorized>
+          </AuthorizeView>
+            
       </form>
     </div>
   </div>

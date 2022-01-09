@@ -29,5 +29,19 @@ namespace HiddenVila_Assembly.Services
             _cleint.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(JwtParser.ParseClaimsFromJwt(token), "JwtAuthType")));
         }
+
+        public void NotityLoggedInUser(string token)
+        {
+            var authenticateduser = new ClaimsPrincipal(new ClaimsIdentity(JwtParser.ParseClaimsFromJwt(token), "JwtAuthType"));
+            var authState = Task.FromResult(new AuthenticationState(authenticateduser));
+            NotifyAuthenticationStateChanged(authState);
+        }
+
+        public void NotifyLoggedOut()
+        {
+            var authState = Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+            NotifyAuthenticationStateChanged(authState);
+
+        }
     }
 }

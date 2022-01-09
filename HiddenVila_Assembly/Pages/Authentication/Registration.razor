@@ -1,6 +1,5 @@
 ﻿@page "/registration"
-@inject IAuthenticationService authenticationService
-@inject NavigationManager navigatioinManager
+
 
 
 <EditForm Model="requestForUser" OnValidSubmit="RegisterUser" class="pt-4">
@@ -78,28 +77,6 @@
 
 
 @code {
-    private UserRequestDTO requestForUser = new UserRequestDTO();
-    public bool IsProccessing { get; set; } = false;
-    public bool ShowRegistrationErrors { get; set; }
-    public IEnumerable<string> Errors { get; set; }
-
-    private async Task RegisterUser()
-    {
-        IsProccessing = true;
-        ShowRegistrationErrors = false;
-        var result = await authenticationService.RegisterUser(requestForUser);
-        if (result.IsRegistrationSuccessful)
-        {
-            IsProccessing = false;
-            navigatioinManager.NavigateTo("/login");
-        }
-        else
-        {
-            IsProccessing = false;
-            ShowRegistrationErrors = true;
-            Errors = result.Errors;
-        }
-
-    }
+   
 
 }
