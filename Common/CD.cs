@@ -14,6 +14,8 @@ namespace Common
 
         public const string Local_InitialBooking = "initialBookinginfo";
         public const string Local_RoomOrderDetails = "RoomOrderDetails";
+        public const string Local_Token = "JWT Token";
+        public const string Local_UserDetails = "User Details";
 
 
         public const string Status_pending = "Pending";
@@ -22,5 +24,7 @@ namespace Common
         public const string Status_CheckedIn = "CheckedIn";
         public const string Status_CheckedOut = "CheckedOut";
         public const string Status_Noshow = "NoShow";
+
+
     }
 }

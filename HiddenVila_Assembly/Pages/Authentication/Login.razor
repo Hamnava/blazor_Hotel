@@ -1,0 +1,41 @@
+﻿@page "/login"
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-6 offset-3 py-5" style="background-color:#08708a">
+            <h1 class="h3 mb-3 pt-3 font-weight-normal text-primary" style="text-align:center; font-weight:bold; color:white">Sign In</h1>
+            <EditForm Model="authenticationuser" OnValidSubmit="LoginUser">
+                <DataAnnotationsValidator />
+
+                @if (ShowAuthenticationErrors)
+                {
+                    <div>
+                        <p style="color:darkred; font-weight:bold" class="text-center">@Errors</p>
+                    </div>
+                }
+                <InputText @bind-Value="authenticationuser.Username" id="email" placeholder="Email..." class="form-control mb-2" />
+                <ValidationMessage For="(()=> authenticationuser.Username)" />
+
+                <InputText @bind-Value="authenticationuser.Password" type="password" placeholder="Password..." id="password" class="form-control mb-2" />
+                <ValidationMessage For="(()=> authenticationuser.Password)" />
+
+                @if (IsProccessing)
+                {
+                    <button type="submit" class="btn btn-success btn-block form-control"  disabled><i class="fas fa-sign-in-alt"></i> please wait...</button>
+                }
+                else
+                {
+                <button type="submit" class="btn btn-success btn-block"><i class="fas fa-sign-in-alt"></i> Sign in</button>
+                }
+                <br />
+                <a href="/registration"
+                   class="btn btn-primary text-white mt-3 form-control"><i class="fas fa-user-plus"></i> Register as a new user</a>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+}

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -55,10 +56,14 @@ namespace HiddingVila_Api
             services.AddScoped<IHotelImage, HotelRoomImageServices>();
             services.AddScoped<IHotelEmenity, HotelEmenityService>();
             services.AddScoped<IRoomOrderDetailsRepository, RoomOrderDetailsRepository>();
+            services.AddScoped<IEmailSender, EmailSender>();
 
             // For APISettings
             var appSettingsSection = Configuration.GetSection("APISettings");
             services.Configure<APISettings>(appSettingsSection);
+
+            // MailJetSettings
+            services.Configure<MailJetSettings>(Configuration.GetSection("MailJetSettings"));
 
             var apiSettings = appSettingsSection.Get<APISettings>();
             var key = Encoding.ASCII.GetBytes(apiSettings.SecretKey);
