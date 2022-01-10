@@ -1,10 +1,12 @@
 ﻿@page "/hotel/room-details/{Id:int}"
+@using Microsoft.AspNetCore.Authorization
 
 @inject IJSRuntime JsRuntime
 @inject ILocalStorageService localStorage
 @inject IHotelRoom hotelRoomService
 @inject IStripePaymentService paymentservice
 @inject IRoomOrderDetailsService roomOrderService
+@attribute [Authorize(Roles= CD.Role_Customer)]
 
 @if (RoomBooking?.orderDetails?.HotelRoomDTO?.HotelImages == null)
 {
@@ -12,12 +14,12 @@
 }
 else
 {
-    <div class="container mt-3">
-        <div class="row bg-dark text-white">
+    <div class="container mt-3 ">
+        <div class="row bg-dark pt-4 text-white">
             <div class="col-8">
                 <div style="display:flex; justify-content:space-between;">
                     <h5>Selectd Room</h5>
-                    <a class="btn btn-secondary">Back to Rooms</a>
+                    <a href="hotel/room" class="btn btn-secondary">Back to Rooms</a>
                 </div>
                 <hr class="my-4" />
                 <div class="row text-white">
@@ -168,6 +170,15 @@ else
                     RoomBooking.orderDetails.HotelRoomDTO.TotalDays = 1;
                     RoomBooking.orderDetails.HotelRoomDTO.TotalAmount = RoomBooking.orderDetails.HotelRoomDTO.RegularRate;
                 }
+            }
+
+            if (await localStorage.GetItemAsync<UserDTO>(CD.Local_UserDetails) != null)
+            {
+                var userInfo = await localStorage.GetItemAsync<UserDTO>(CD.Local_UserDetails);
+                RoomBooking.orderDetails.UserId = userInfo.Id;
+                RoomBooking.orderDetails.Name = userInfo.Name;
+                RoomBooking.orderDetails.Email = userInfo.Email;
+                RoomBooking.orderDetails.Phone = userInfo.PhoneNo;
             }
         }
         catch (Exception e)
