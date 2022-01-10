@@ -23,6 +23,7 @@ namespace Common
         public const string Status_Cancelled = "Cancelled";
         public const string Status_CheckedIn = "CheckedIn";
         public const string Status_CheckedOut = "CheckedOut";
+        public const string Status_Completed = "CheckedOut";
         public const string Status_Noshow = "NoShow";
 
 
