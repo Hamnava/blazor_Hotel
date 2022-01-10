@@ -110,10 +110,10 @@ namespace Business.Repository
                 {
                     roomOrder.ActualCheckInDate = DateTime.Now;
                 }
-                //if (status == CD.Status_CheckedOut_Completed)
-                //{
-                //    roomOrder.ActualCheckOutDate = DateTime.Now;
-                //}
+                if (status == CD.Status_Completed)
+                {
+                    roomOrder.ActualCheckOutDate = DateTime.Now;
+                }
                 await _db.SaveChangesAsync();
                 return true;
             }
